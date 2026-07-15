@@ -22,10 +22,12 @@ from services.collection_service import (
 @pytest.fixture
 def app():
     """Create an isolated test app with an in-memory database."""
-    app = create_app(config={
-        "TESTING": True,
-        "SQLALCHEMY_DATABASE_URI": "sqlite:///:memory:",
-    })
+    app = create_app(
+        config={
+            "TESTING": True,
+            "SQLALCHEMY_DATABASE_URI": "sqlite:///:memory:",
+        }
+    )
     with app.app_context():
         db.create_all()
         yield app
@@ -55,6 +57,7 @@ def sample_film(app):
 
 # ── Basic add ───────────────────────────────────────────────────────────────
 
+
 def test_add_to_collection_creates_entry(app, sample_user, sample_film):
     """
     Adding a valid film should create a CollectionEntry in the database.
@@ -67,13 +70,12 @@ def test_add_to_collection_creates_entry(app, sample_user, sample_film):
         assert entry.film_id == sample_film
 
         # Verify it persisted
-        in_db = CollectionEntry.query.filter_by(
-            user_id=sample_user, film_id=sample_film
-        ).first()
+        in_db = CollectionEntry.query.filter_by(user_id=sample_user, film_id=sample_film).first()
         assert in_db is not None
 
 
 # ── Deduplication ────────────────────────────────────────────────────────────
+
 
 def test_add_to_collection_duplicate_raises(app, sample_user, sample_film):
     """
@@ -87,13 +89,12 @@ def test_add_to_collection_duplicate_raises(app, sample_user, sample_film):
             add_to_collection(user_id=sample_user, film_id=sample_film)
 
         # Confirm only one entry exists
-        count = CollectionEntry.query.filter_by(
-            user_id=sample_user, film_id=sample_film
-        ).count()
+        count = CollectionEntry.query.filter_by(user_id=sample_user, film_id=sample_film).count()
         assert count == 1
 
 
 # ── Nonexistent film ─────────────────────────────────────────────────────────
+
 
 def test_add_to_collection_nonexistent_film_raises(app, sample_user):
     """
@@ -108,6 +109,7 @@ def test_add_to_collection_nonexistent_film_raises(app, sample_user):
 
 
 # ── get_collection sort order ────────────────────────────────────────────────
+
 
 def test_get_collection_returns_newest_first(app, sample_user):
     """
