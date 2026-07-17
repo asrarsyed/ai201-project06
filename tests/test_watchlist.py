@@ -7,6 +7,7 @@ Tests for the watchlist service, mirroring tests/test_collection.py.
 import pytest
 from app import create_app, db
 from models import User, Film, WatchlistEntry
+from datetime import datetime, timezone, timedelta
 from services.watchlist_service import (
     add_to_watchlist,
     get_watchlist,
@@ -116,3 +117,21 @@ def test_add_to_watchlist_nonexistent_film_raises(app, sample_user):
 
         with pytest.raises(FilmNotFoundError):
             add_to_watchlist(user_id=sample_user, film_id=fake_film_id)
+
+
+# ── get_watchlist film data ──────────────────────────────────────────────────
+
+
+def test_get_watchlist_returns_film_data(app, sample_user, sample_film):
+    """
+    get_watchlist() should return film details (via WatchlistEntry.film),
+    not just raw entry data.
+    """
+    with app.app_context():
+        add_to_watchlist(user_id=sample_user, film_id=sample_film)
+
+        watchlist = get_watchlist(sample_user)
+
+        assert len(watchlist) == 1
+        assert watchlist[0]["title"] == "Paddington 2"
+
