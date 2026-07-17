@@ -135,3 +135,32 @@ def test_get_watchlist_returns_film_data(app, sample_user, sample_film):
         assert len(watchlist) == 1
         assert watchlist[0]["title"] == "Paddington 2"
 
+
+# ── get_watchlist sort order ─────────────────────────────────────────────────
+
+
+def test_get_watchlist_returns_newest_first(app, sample_user):
+    """
+    get_watchlist() should return films sorted by date_added descending
+    (most recently added first), not alphabetically by title.
+    """
+    with app.app_context():
+        film_a = Film(title="Alien", year=1979, genre="Horror")
+        film_b = Film(title="Blade Runner", year=1982, genre="Sci-Fi")
+        db.session.add_all([film_a, film_b])
+        db.session.commit()
+
+        earlier = datetime.now(timezone.utc) - timedelta(days=5)
+        later = datetime.now(timezone.utc)
+
+        entry_a = WatchlistEntry(user_id=sample_user, film_id=film_a.id, date_added=earlier)
+        entry_b = WatchlistEntry(user_id=sample_user, film_id=film_b.id, date_added=later)
+        db.session.add_all([entry_a, entry_b])
+        db.session.commit()
+
+        watchlist = get_watchlist(sample_user)
+        titles = [f["title"] for f in watchlist]
+
+        # Blade Runner was added later, so it should come first
+        assert titles[0] == "Blade Runner"
+        assert titles[1] == "Alien"
