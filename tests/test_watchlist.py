@@ -70,6 +70,20 @@ def test_add_to_watchlist_creates_entry(app, sample_user, sample_film):
         assert in_db is not None
 
 
+def test_add_to_watchlist_respects_public_flag(app, sample_user, sample_film):
+    """
+    Passing public=False should persist the entry as non-public, overriding
+    the default.
+    """
+    with app.app_context():
+        entry = add_to_watchlist(user_id=sample_user, film_id=sample_film, public=False)
+
+        assert entry.public is False
+
+        in_db = WatchlistEntry.query.filter_by(user_id=sample_user, film_id=sample_film).first()
+        assert in_db.public is False
+
+
 # ── Deduplication ────────────────────────────────────────────────────────────
 
 
